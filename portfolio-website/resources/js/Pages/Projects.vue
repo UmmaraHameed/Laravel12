@@ -2,6 +2,20 @@
     <AppLayout>
         <div class="max-w-6xl mx-auto">
             <h1 class="text-4xl font-bold text-center mb-8">My Projects</h1>
+
+            <!-- Clients marquee strip -->
+            <div class="mb-10">
+                <ClientStrip 
+                  :logos="[
+                    { name: 'VIA', src: 'https://cdn.prod.website-files.com/5e4d9854e6dad067f4b514b3/6819fa16e08edc7d01b1a141_76576531.svg' },
+                    { name: 'Polaris', src: 'https://cdn.prod.website-files.com/5e4d9854e6dad067f4b514b3/6627d65c63d2b401cc79e2e3_g2317.svg'},
+                    { name: 'Hyundai', src: 'https://cdn.prod.website-files.com/5e4d9854e6dad067f4b514b3/6627d66357f77274d9e5c5f8_521515.svg' },
+                    { name: 'Ford', src: 'https://cdn.prod.website-files.com/5e4d9854e6dad067f4b514b3/6627d65b63d2b401cc79e286_9769679.svg' },
+                    { name: 'Stripe', src: 'https://upload.wikimedia.org/wikipedia/commons/3/3f/Stripe_Logo%2C_revised_2016.svg' }
+                  ]"
+                  :duration="22"
+                />
+            </div>
             
             <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
                 <!-- Project 1 -->
@@ -148,4 +162,5 @@
 
 <script setup>
 import AppLayout from '../Layouts/AppLayout.vue';
+import ClientStrip from '@/components/ClientStrip.vue'
 </script>

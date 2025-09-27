@@ -10,10 +10,12 @@ const serviceItems = [
 ]
 
 const productItems = [
+  { label: 'Product Home', desc: 'Overview & features', href: '/product', icon: 'home' },
   { label: 'Web Apps', desc: 'Modern, scalable, fast', href: '/product/web', icon: 'cube' },
   { label: 'Mobile Apps', desc: 'iOS, Android, cross-platform', href: '/product/mobile', icon: 'spark' },
   { label: 'AI & Automation', desc: 'From data to outcomes', href: '/product/ai', icon: 'shield' },
 ]
+
 </script>
 
 <template>

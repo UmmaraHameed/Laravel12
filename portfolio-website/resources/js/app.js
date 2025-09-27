@@ -1,8 +1,9 @@
 import './bootstrap';
 import '../css/app.css';
-import AOS from 'aos';
-import 'aos/dist/aos.css';
-AOS.init();
+import AOS from 'aos'
+import 'aos/dist/aos.css'
+AOS.init({ once: false, duration: 200 })
+
 
 import { createApp, h } from 'vue';
 import { createInertiaApp } from '@inertiajs/vue3';

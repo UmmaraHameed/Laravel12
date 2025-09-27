@@ -2,34 +2,46 @@
   <div class="relative" @mouseenter="open = true" @mouseleave="open = false">
     <button
       type="button"
-      class="inline-flex items-center gap-1 text-white hover:text-white/90"
+      class="inline-flex items-center gap-1 text-white hover:text-white/90 focus:outline-none focus:ring-2 focus:ring-white/20 rounded-md px-2 py-1"
       :aria-expanded="open"
-      @click="open = !open"
+      aria-haspopup="menu"
+      aria-controls="menu-panel"
+      @click="toggleDropdown"
+      @keydown.enter="toggleDropdown"
+      @keydown.space.prevent="toggleDropdown"
     >
       <span class="font-medium">{{ label }}</span>
-      <svg class="h-4 w-4 transition" :class="{ 'rotate-180': open }" viewBox="0 0 20 20" fill="currentColor">
+      <svg class="h-4 w-4 transition-transform duration-200" :class="{ 'rotate-180': open }" viewBox="0 0 20 20" fill="currentColor">
         <path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 10.94l3.71-3.71a.75.75 0 111.06 1.06l-4.24 4.24a.75.75 0 01-1.06 0L5.21 8.29a.75.75 0 01.02-1.08z" clip-rule="evenodd"/>
       </svg>
     </button>
 
-    <!-- Panel (dark, translucent) -->
     <div
       v-show="open"
-      class="absolute left-1/2 -translate-x-1/2 mt-3 w-[760px]
-             rounded-xl bg-neutral-900/95 text-white backdrop-blur
-             border border-white/10 ring-1 ring-white/10 shadow-2xl p-4"
+      id="menu-panel"
+      role="menu"
+      class="absolute z-50 left-0 right-0 sm:left-1/2 sm:right-auto sm:-translate-x-1/2 mt-2 w-full sm:w-[760px] max-h-[70vh] overflow-y-auto rounded-xl bg-neutral-900/95 text-white backdrop-blur border border-white/10 ring-1 ring-white/10 shadow-2xl p-3 sm:p-4"
+      @keydown.esc.stop.prevent="closeDropdown"
+      @click.stop
     >
-      <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
-        <a
-          v-for="item in items"
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-1.5 sm:gap-2">
+        <component
+          v-for="(item, index) in items"
           :key="item.label"
+          :is="item.external ? 'a' : Link"
           :href="item.href"
-          class="group flex items-start gap-4 rounded-lg px-3 py-3 hover:bg-white/5 transition"
+          :target="item.external ? '_blank' : undefined"
+          :rel="item.external ? 'noopener noreferrer' : undefined"
+          role="menuitem"
+          :tabindex="0"
+          class="group flex items-start gap-4 rounded-lg px-3 py-3 hover:bg-white/5 focus:bg-white/5 focus:outline-none focus:ring-2 focus:ring-white/20 transition-all duration-200 w-full cursor-pointer"
+          @click="handleItemClick(item)"
+          @keydown.enter="handleItemClick(item)"
+          @keydown.space.prevent="handleItemClick(item)"
+          @keydown.arrow-down.prevent="focusNextItem(index)"
+          @keydown.arrow-up.prevent="focusPrevItem(index)"
         >
-          <!-- Icon bubble -->
-          <span class="mt-0.5 grid h-10 w-10 place-items-center rounded-lg
-                       bg-white/10 text-white/90 group-hover:bg-white/15">
-            <!-- choose icon by key -->
+          <span class="mt-0.5 grid h-10 w-10 place-items-center rounded-lg bg-white/10 text-white/90 group-hover:bg-white/15">
             <svg v-if="item.icon === 'review'" class="h-5 w-5" viewBox="0 0 24 24" fill="currentColor">
               <path d="M3 5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H9l-4 4v-4H5a2 2 0 0 1-2-2V5z"/>
             </svg>
@@ -53,25 +65,86 @@
             </svg>
           </span>
 
-          <!-- Copy -->
           <span class="block">
             <span class="block font-semibold text-white leading-5">{{ item.label }}</span>
             <span class="block text-sm text-white/70">{{ item.desc }}</span>
           </span>
-        </a>
+        </component>
       </div>
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, nextTick, onMounted, onUnmounted } from 'vue'
+import { Link } from '@inertiajs/vue3'
 
 defineProps({
   label: { type: String, required: true },
-  // items: [{ label, desc, href, icon }]
   items: { type: Array, required: true }
 })
 
 const open = ref(false)
+
+const toggleDropdown = () => {
+  open.value = !open.value
+  if (open.value) {
+    nextTick(() => {
+      const firstItem = document.querySelector('#menu-panel [role="menuitem"]')
+      if (firstItem) {
+        firstItem.focus()
+      }
+    })
+  }
+}
+
+const closeDropdown = () => {
+  open.value = false
+}
+
+const handleItemClick = (item) => {
+  if (item.external) {
+    // For external links, let the browser handle the navigation
+    window.open(item.href, '_blank', 'noopener,noreferrer')
+  } else {
+    // For internal links, close dropdown and let Inertia handle navigation
+    closeDropdown()
+  }
+}
+
+const focusNextItem = (currentIndex) => {
+  const items = document.querySelectorAll('#menu-panel [role="menuitem"]')
+  const nextIndex = (currentIndex + 1) % items.length
+  items[nextIndex]?.focus()
+}
+
+const focusPrevItem = (currentIndex) => {
+  const items = document.querySelectorAll('#menu-panel [role="menuitem"]')
+  const prevIndex = currentIndex === 0 ? items.length - 1 : currentIndex - 1
+  items[prevIndex]?.focus()
+}
+
+// Close dropdown when clicking outside
+const handleClickOutside = (event) => {
+  if (open.value && !event.target.closest('.relative')) {
+    closeDropdown()
+  }
+}
+
+// Handle escape key globally
+const handleEscape = (event) => {
+  if (event.key === 'Escape' && open.value) {
+    closeDropdown()
+  }
+}
+
+onMounted(() => {
+  document.addEventListener('click', handleClickOutside)
+  document.addEventListener('keydown', handleEscape)
+})
+
+onUnmounted(() => {
+  document.removeEventListener('click', handleClickOutside)
+  document.removeEventListener('keydown', handleEscape)
+})
 </script>
